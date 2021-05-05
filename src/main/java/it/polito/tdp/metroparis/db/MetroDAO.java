@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.javadocmd.simplelatlng.LatLng;
 
+import it.polito.tdp.metroparis.model.Connessione;
 import it.polito.tdp.metroparis.model.Fermata;
 import it.polito.tdp.metroparis.model.Linea;
 
@@ -85,7 +86,7 @@ public class MetroDAO {
 			ResultSet rs = st.executeQuery();
 			
 			rs.first();
-			
+			 
 			int conteggio = rs.getInt("cnt");
 			
 			conn.close();
@@ -96,6 +97,52 @@ public class MetroDAO {
 			throw new RuntimeException("Errore Query", e);
 		}
 
+	}
+	
+	public List<Connessione> getAllConnection(List<Fermata> fermate) {
+		
+		final String sql = "SELECT id_connessione, id_linea, id_stazP, id_stazA "
+				+ "FROM connessione "
+				+ "WHERE id_stazP>id_stazA";
+		
+		try {
+			
+			Connection conn = DBConnect.getConnection();
+			
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			ResultSet rs = st.executeQuery();
+			
+			List<Connessione> result = new ArrayList<>();
+			
+			while(rs.next()) {
+				
+				int id_partenza = rs.getInt("id_stazP");
+				Fermata fermata_partenza = null;
+				for(Fermata f : fermate) 
+					if(f.getIdFermata() == id_partenza)
+						fermata_partenza = f;
+				
+				int id_arrivo = rs.getInt("id_stazA");
+				Fermata fermata_arrivo = null;
+				for(Fermata f : fermate) 
+					if(f.getIdFermata() == id_arrivo)
+						fermata_arrivo = f;
+				
+				Connessione c = new Connessione(rs.getInt("id_connessione"), null, fermata_partenza, fermata_arrivo);
+				
+				result.add(c);
+				
+			}
+			
+			conn.close();
+			
+			return result;
+			
+		}catch(SQLException e) {
+			throw new RuntimeException("Errore DB", e);
+		}
+		
 	}
 
 
